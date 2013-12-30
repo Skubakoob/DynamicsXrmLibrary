@@ -3,6 +3,11 @@ This is basically a shorthand library. I got bored of typing Xrm.Page.etc.etc. a
 
 A nice benefit of this library is that we can use chaining.
 
+##Who this is for
+This library is very early in it's life. I'm going to use it for a while and see how it works and if it feels like something that is worth pursuing. It's goal is to make coding dynamics crm a little easier and to make the code that does the work a little neater.
+
+It needs a lot of work to make it fully functional, whatever that may be, but for now it makes it much quicker to handle form logic.
+
 ##Usage
 
 There are (currently) three objects you can use to speed up your coding.
@@ -11,9 +16,8 @@ There are (currently) three objects you can use to speed up your coding.
 * $u is a set of utility functions. It's currently a pot for anything that isn't directly related to an attribute, such as shortcut to the Xrm.Utility.confirmDialog function, but also any other functions that may come in handy. i.e. you can use $u.fixIE8(); to apply ECMA262-5 fixes for ie8, $u.hideSubGridAddButton("subgrid_name"); to hide the add new button in sub grids, $u.setVisibleTabSection(tabname, sectionname, show); and so on.
 * $c is a number of constant values such as the form types. It's essentially an enumerator for these sorts of things. i.e $c.formTypes.Update == 2
 
-$x ##Example
+##$x Example
 
-For example:
 ```JavaScript
   Xrm.Page.getAtrribute("attribute").setRequiredLevel("required");
   Xrm.Page.getControl("attribute").setVisible(true);

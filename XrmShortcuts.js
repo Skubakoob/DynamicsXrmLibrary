@@ -319,7 +319,7 @@ var BrcXrmShortcuts = function (attribute) {
     this.setDateToday = function () {
         ///<summary>Sets the given attribute value to the current datetime. This will only work on a datetime attribute</summary>
         //if (Xrm.Page.ui.getFormType() == 1) // on create        
-        if (Xrm.Page.getAttribute(attribute).getAttributeType == $c.attributeTypes.datetime)
+        if (Xrm.Page.getAttribute(attribute).getAttributeType() == $c.attributeTypes.datetime)
             Xrm.Page.getAttribute(attribute).setValue(new Date());
         return new BrcXrmShortcuts(attribute); // re-initiate for chaining
     };

@@ -4,7 +4,7 @@ This is basically a shorthand library. I got bored of typing Xrm.Page.etc.etc. a
 A nice benefit of this library is that we can use chaining.
 
 ##Who this is for
-This library is very early in it's life. I'm going to use it for a while and see how it works and if it feels like something that is worth pursuing. It's goal is to make coding dynamics crm a little easier and to make the code that does the work a little neater.
+This library is very early in its life. I'm going to use it for a while and see how it works and if it feels like something that is worth pursuing. It's goal is to make coding dynamics crm a little easier and to make the code that does the work a little neater.
 
 It needs a lot of work to make it fully functional, whatever that may be, but for now it makes it much quicker to handle form logic.
 

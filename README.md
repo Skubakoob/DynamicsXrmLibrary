@@ -1,12 +1,10 @@
 #Welcome to the Dynamics CRM 2013 Shortcut library with chaining
-This is basically a shorthand library. I got bored of typing Xrm.Page.etc.etc. and not remembering if it's Xrm.Page.getAttribute or Xrm.Page.getControl.. 9 times out of 10 I don't care which one it is.
+This is basically a shorthand library. I got tired of typing Xrm.Page.etc.etc. so this cuts the amount of code right down when writing form logic.
 
-A nice benefit of this library is that we can use chaining.
+A nice benefit of this library is that we can use chaining - yay!
 
 ##Who this is for
-This library is very early in its life. I'm going to use it for a while and see how it works and if it feels like something that is worth pursuing. It's goal is to make coding dynamics crm a little easier and to make the code that does the work a little neater.
-
-It needs a lot of work to make it fully functional, whatever that may be, but for now it makes it much quicker to handle form logic.
+This library is very early in its life but I've found it a great time saver. It's goal is to make coding dynamics crm a little easier and to make the code that does the work a little neater.
 
 ##Usage
 

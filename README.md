@@ -7,8 +7,9 @@ A nice benefit of this library is that we can use chaining - hooray! See below f
 This library is very early in its life but I've found it a great time saver. It's goal is to make coding dynamics crm a little easier and to make the code that does the work a little neater.
 
 ##Usage
+Add the file to your CRM solution, add it into your project in VS and you should get some friendly code completion working! Just don't forget to include the file in any forms you use it in.
 
-There are (currently) three objects you can use to speed up your coding.
+There are (currently) three objects you can use to speed up your coding:
 
 * $x provides us with a shortcut to a (currently limited) set of attribute and control functions. i.e. $x("attribute_name").setVisible(true);
 * $u is a set of utility functions. It's currently a pot for anything that isn't directly related to an attribute, such as shortcut to the Xrm.Utility.confirmDialog function, but also any other functions that may come in handy. i.e. you can use $u.fixIE8(); to apply ECMA262-5 fixes for ie8, $u.hideSubGridAddButton("subgrid_name"); to hide the add new button in sub grids, $u.setVisibleTabSection(tabname, sectionname, show); and so on.

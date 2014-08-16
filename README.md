@@ -1,7 +1,7 @@
 #Welcome to the Dynamics CRM 2013 Shortcut library with chaining
 This is basically a shorthand library. I got tired of typing Xrm.Page.etc.etc. so this cuts the amount of code right down when writing form logic.
 
-A nice benefit of this library is that we can use chaining - yay!
+A nice benefit of this library is that we can use chaining - hooray! See below for some examples.
 
 ##Who this is for
 This library is very early in its life but I've found it a great time saver. It's goal is to make coding dynamics crm a little easier and to make the code that does the work a little neater.

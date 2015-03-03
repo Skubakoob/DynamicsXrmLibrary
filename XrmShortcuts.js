@@ -1,6 +1,6 @@
 /// <reference path="XrmPage-vsdoc.js" />
-
-var BrcXrmConstants = {
+// Shorthand XRM Library with Chaining
+var ShorthandXrmConstants = {
     ///<summary>A set of XRM constants - i.e. requirement levels, mandatory level etc.</summary>
     requirementLevels: {
         required: "required",
@@ -11,7 +11,7 @@ var BrcXrmConstants = {
         always: "always",
         never: "never"
     },
-    attributeTypes : {
+    attributeTypes: {
         datetime: "datetime",
         boolean: "boolean",
         decimal: "decimal",
@@ -21,7 +21,7 @@ var BrcXrmConstants = {
         memo: "memo",
         money: "money",
         optionset: "optionset",
-        string : "string"
+        string: "string"
     },
     formTypes: {
         Create: 1,
@@ -38,18 +38,25 @@ var BrcXrmConstants = {
     }
 
 }
-$c = BrcXrmConstants;
+$c = ShorthandXrmConstants;
 
-function BrcXrmUtilities() {
+function ShorthandXrmUtilities() {
     ///<summary>Utility library</summary>
     var RequiredFields = [];
     var that = this; // does it matter where this goes?
+    function debugAttributes() {
+        Xrm.Page.ui.controls.forEach(function (control, index) {
+            var controlType = control.getControlType();
+            that.writeToConsole(control.getName() + " - " + control.getControlType());
+        });
+    };
     function getRequiredAttributes() {
         for (var x = 0; x < RequiredFields.length; x++) {
             Xrm.Page.getAttribute(RequiredFields[x]).removeOnChange(this.notifyRequiredAttributes);
             Xrm.Page.ui.clearFormNotification(RequiredFields[x]);
         }
         RequiredFields = [];
+
         Xrm.Page.ui.controls.forEach(function (control, index) {
             var controlType = control.getControlType();
             if (controlType != "iframe" && controlType != "webresource" && controlType != "subgrid") {
@@ -98,6 +105,25 @@ function BrcXrmUtilities() {
     this.writeCurrentIdToConsole = function () {
         this.writeToConsole(Xrm.Page.data.entity.getId());
     };
+    this.compareGuids = function (guid1, guid2) {
+        ///<summary>Compares two guids. Converts both to lower case and strips braces. If both are null, will return true</summary>
+        if (guid1 && guid2) {
+            guid1 = guid1.replace("{", "").replace("}", "").toLowerCase();
+            guid2 = guid2.replace("{", "").replace("}", "").toLowerCase();
+            if (guid1 == guid2)
+                return true;
+            else
+                return false;
+        }
+        else {
+            // if either has some kind of value, return false - otherwise both null, so return true
+            return
+            (!guid1 && guid2) ? false :
+            (gui1 && !guid2) ? false :
+            true;
+
+        }
+    };
     this.writeToConsole = function (message, level) {
         ///<summary>if a console is available in the browser, write to it. Can specify the alert level</summary>
         ///<param name="message">String</param>
@@ -129,11 +155,21 @@ function BrcXrmUtilities() {
     this.confirmDialog = function (message, yesCloseCallback, noCloseCallback) {
         Xrm.Utility.confirmDialog(message, yesCloseCallback, noCloseCallback);
     };
+    this.tidyGuid = function (guid) {
+        ///<summary>Returns a guid in lowercase with no brackets</summary>
+        if (guid) {
+            return guid.replace("{", "").replace("}", "").toLowerCase();
+        }
+    };
+    this.hideSubGridOpenAssociatedView = function (gridName) {
+        document.getElementById(gridName + "_openAssociatedGridViewImageButton").style.visibility = 'hidden';
+    };
     this.hideSubGridAddButton = function (gridName) {
-        ///<summary>Hides the + button on sub grids. Uses unsupported getElementById</summary>
+        ///<summary>UNSUPPORTED: Hides the + button on sub grids. Uses unsupported getElementById</summary>
         // ServiceAssessments
         document.getElementById(gridName + "_addImageButton").style.visibility = 'hidden';
     };
+
     this.fixIE8 = function () {
         ///<summary>Add ECMA262-5 method binding if not supported natively</summary>
         /* ie8 fixes */
@@ -241,7 +277,6 @@ function BrcXrmUtilities() {
         ///<summary>Returns the ID value from a lookup field, or a null</summary>
         ///<param name="attribute" type="Page Attribute ID">Attribute ID</param>
         ///<returns type="ID as String or null"></returns>
-
         var lookup = Xrm.Page.getAttribute(attribute).getValue();
         return (lookup != null && lookup.length > 0 & lookup != "null") ? lookup[0].id.toLowerCase() : null;
     };
@@ -264,11 +299,170 @@ function BrcXrmUtilities() {
             // alert("?");
         }
     };
+    this.sectionControls = function (tabname, sectionname) {
+        ///<summary>returns a collection of controls for a section</summary>
+        var tab = Xrm.Page.ui.tabs.get(tabname);
+        if (tab !== null) {
+            var section = tab.sections.get(sectionname);
+            if (section !== null) {
+                return section.controls.get();
+            }
+        }
+
+        return null;
+    };
+    this.CheckUserRole = function (roleName, context) {
+        var userHasRole = false;
+
+        //get the current roles for the user
+        var userRoles = context.getUserRoles();
+
+        //get the roleids with the rolename
+        //the roleids can be multiple for multiple business units
+        var roleIdArray = this.FetchUserRoleIdWithName(roleName, context);
+        for (var userRole in userRoles) {
+            if (jQuery.inArray(userRoles[userRole], roleIdArray) != -1) {
+                userHasRole = true;
+                break;
+            }
+        }
+        return userHasRole;
+    };
+    this.setFormNotification = function (message, level, uniqueId) {
+        ///<summary>Displays form level notification. If using an attribute, use $x(attribute_name).setFormNotificationfunction</summary>
+        ///<param name="message">String: The text of the message </param>
+        ///<param name="level">Type: ERROR, WARNING, INFO</param>       
+        ///<param name="uniqueId">uniqueId: An ID for the notification.</param>
+        
+        Xrm.Page.ui.setFormNotification(message, level ? level : "INFO", uniqueId);
+    };
+    this.clearFormNotification = function (uniqueId) {
+        Xrm.Page.ui.clearFormNotification(uniqueId);
+    };
+    this.getUserId = function () {
+        return Xrm.Page.context.getUserId();
+    };
+    this.getUserName = function () {
+        return Xrm.Page.context.getUserName();
+    };
+    this.getFormType = function () {
+        return Xrm.Page.ui.getFormType();
+    };
+    this.getFormRecordGuid = function () {
+        return Xrm.Page.data.entity.getId();
+    };
+    // Parameters
+    // save => A Boolean value to indicate if data should be saved after it is refreshed.
+    // successCallback => A function to call when the operation succeed
+    // errorCallbak => A function to call when the operation fails. It gets called with 2 parameters (an error code and a localized error message)
+    this.refresh = function (save, successCallback, errorCallback) {
+        Xrm.Page.data.refresh(save).then(successCallback, errorCallback);
+    };
+
+    // Parameters
+    // successCallback => A function to call when the operation succeed
+    // errorCallbak => A function to call when the operation fails. It gets called with 2 parameters (an error code and a localized error message)
+    this.save = function (successCallback, errorCallback) {
+        Xrm.Page.data.save().then(successCallback, errorCallback);
+    };
+    // Checks whether the security role exists in the system by using ODATA call 
+    this.FetchUserRoleIdWithName = function (roleName, context) {
+        var serverUrl = Xrm.Page.context.getServerUrl();
+        var oDataUri = serverUrl + "/XRMServices/2011/OrganizationData.svc/RoleSet?$filter=Name eq '" + roleName + "'&$select=RoleId";
+        var jSonArray = new Array();
+
+        jQuery.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            datatype: "json",
+            url: oDataUri,
+            async: false,
+            beforeSend: function (XMLHttpRequest) {
+                //Specifying this header ensures that the results will be returned as JSON.
+                XMLHttpRequest.setRequestHeader("Accept", "application/json");
+            },
+            success: function (data, textStatus, XmlHttpRequest) {
+                if (data && data.d != null) {
+                    for (var count = 0; count < data.d.results.length; count++) {
+                        jSonArray.push(data.d.results[count].RoleId);
+                    }
+                }
+            },
+            error: function (XmlHttpRequest, textStatus, errorThrown) {
+                alert("Error :  has occured during retrieval of the role " + roleName);
+            }
+        });
+        return jSonArray;
+    };
+    // compare two arrays - note JSON data can't be compared in here
+    this.compareArrays=function(array1, array2){
+        // if the either array is a falsy value, return
+        if (!array1 || !array2) {
+            return false;
+        }
+
+        // compare lengths - can save a lot of time 
+        if (array1.length != array2.length) {            
+            return false;
+        }
+
+        for (var i = 0, l = array1.length; i < l; i++) {
+            // Check if we have nested arrays
+            if (array1[i] instanceof Array && array2[i] instanceof Array) {
+                // recurse into the nested arrays
+                //if (!this[i].equals(array[i]))
+                if(!this.compareArrays(array1[i], array2[i]))
+                    return false;
+            }
+            else if (array1[i] != array2[i]) {
+                // console.log("value different");
+                // Warning - two different object instances will never be equal: {x:20} != {x:20}
+                return false;
+            }
+        }
+        return true;
+    }
+
+    //Retrieve Querystring Parameter
+    this.getQSParm = function (parameter) {
+        var qrStr = window.location.search;
+
+        var spQrStr = qrStr.substring(1);
+
+        var arrQrStr = new Array();
+
+        // splits each of pair
+
+        var arr = spQrStr.split('&');
+
+        for (var i = 0; i < arr.length; i++) {
+
+            // splits each of field-value pair
+
+            var index = arr[i].indexOf('=');
+
+            var key = arr[i].substring(0, index);
+
+            var val = arr[i].substring(index + 1);
+
+            // saves each of field-value pair in an array variable
+
+            arrQrStr[key] = val;
+
+        }
+
+        return arrQrStr[parameter] === null ? "" : decodeURIComponent(arrQrStr[parameter]);
+    }
+
+    //Set Field to Lookup SearchText
+    this.searchTextToAttribute = function (attribute) {
+        Xrm.Page.getAttribute(attribute).setValue($u.getQSParm('_searchText'));
+    }
 }
 
-var $u = new BrcXrmUtilities();
+var $u = new ShorthandXrmUtilities();
 
-var BrcXrmShortcuts = function (attribute) {
+var ShorthandXRM = function (attribute) {
     ///<summary>
     ///Shortcut library for various Xrm.Page functions. If there are no return values, chaining is enabled.\n
     ///Can maybe split into data manipulation and attribute/control manipulation tools
@@ -277,14 +471,24 @@ var BrcXrmShortcuts = function (attribute) {
         ///<summary>Returns the attribute value. Can't be chained</summmary>
         return Xrm.Page.getAttribute(attribute).getValue();
     };
+    this.getLookupGuidValue = function () {
+        ///<summary>Returns the attributes GUID value with braces, or NULL. Can't be chained</summmary>      
+        var field = Xrm.Page.getAttribute(attribute);
+        if (field) {
+            var lookup = field.getValue();
+            return (lookup != null && lookup.length > 0 & lookup != "null") ? lookup[0].id.toLowerCase() : null;
+        }
+        else
+            return null;
+    };
     this.addOnChange = function (functionToCall) {
         /// <summary>Add an onchange function to a field</summary>    
         Xrm.Page.getAttribute(attribute).addOnChange(functionToCall);
-        return new BrcXrmShortcuts(attribute); // re-initiate for chaining
+        return new ShorthandXRM(attribute); // re-initiate for chaining
     };
     this.removeOnChange = function (functionToRemove) {
         Xrm.Page.getAttribute(attribute).removeOnChange(functionToRemove);
-        return new BrcXrmShortcuts(attribute); // re-initiate for chaining
+        return new ShorthandXRM(attribute); // re-initiate for chaining
     };
     this.setRequired = function (is_Required) {
         ///<summary>Set the requirement level by Boolean value
@@ -295,48 +499,74 @@ var BrcXrmShortcuts = function (attribute) {
             Xrm.Page.getAttribute(attribute).setRequiredLevel($c.requirementLevels.required); // could just use the text value here
         else
             Xrm.Page.getAttribute(attribute).setRequiredLevel($c.requirementLevels.none);
-        return new BrcXrmShortcuts(attribute); // re-initiate for chaining
+        return new ShorthandXRM(attribute); // re-initiate for chaining
     };
     this.setRequiredLevel = function (level) {
         ///<summary>Can use $c.requirementlevel</summary>
         ///<param name="level" type="BrcXrmConstants.requirementLevels">One of the values 'required', 'recommended', 'none'.</param>
         Xrm.Page.getAttribute(attribute).setRequiredLevel(level);
-        return new BrcXrmShortcuts(attribute); // re-initiate for chaining
+        return new ShorthandXRM(attribute); // re-initiate for chaining
     };
     this.setSubmitMode = function (submitMode) {// always");"never"
         ///<summary>Can use $c.submitModes. Set form readonly fields to always if changing value in JS code</summary>
         ///<param name="submitMode" type="BrcXrmConstants.submitModes">One of the values 'always', 'never'</param>
         Xrm.Page.getAttribute(attribute).setSubmitMode(submitMode);
+        return new ShorthandXRM(attribute); // re-initiate for chaining
     };
     this.setVisible = function (is_visible) {
         Xrm.Page.getControl(attribute).setVisible(is_visible);
-        return new BrcXrmShortcuts(attribute); // re-initiate for chaining
+        return new ShorthandXRM(attribute); // re-initiate for chaining
+    };
+    this.getVisible = function () {
+        return Xrm.Page.getControl(attribute).getVisible();
+    };
+    this.switchVisible = function () {
+        ///<summary>Inverts the visbility of a control</summary>
+        var isVisible = Xrm.Page.getControl(attribute).getVisible();
+        Xrm.Page.getControl(attribute).setVisible(!isVisible);
+        return new ShorthandXRM(attribute); // re-initiate for chaining 
     };
     this.setDisabled = function (is_disabled) {
         Xrm.Page.getControl(attribute).setDisabled(is_disabled);
-        return new BrcXrmShortcuts(attribute); // re-initiate for chaining
+        return new ShorthandXRM(attribute); // re-initiate for chaining
     };
     this.setDateToday = function () {
         ///<summary>Sets the given attribute value to the current datetime. This will only work on a datetime attribute</summary>
-        //if (Xrm.Page.ui.getFormType() == 1) // on create        
-        if (Xrm.Page.getAttribute(attribute).getAttributeType() == $c.attributeTypes.datetime)
+        //if (Xrm.Page.ui.getFormType() == 1) // on create       
+        if (Xrm.Page.getAttribute(attribute).getAttributeType() == $c.attributeTypes.datetime) {
             Xrm.Page.getAttribute(attribute).setValue(new Date());
-        return new BrcXrmShortcuts(attribute); // re-initiate for chaining
+        }
+        return new ShorthandXRM(attribute); // re-initiate for chaining
+    };
+    this.setNotification = function (message) {
+        Xrm.Page.getControl(attribute).setNotification(message);
+    };
+    this.clearNotification = function () {
+        Xrm.Page.getControl(attribute).clearNotification();
     };
     this.setFormNotification = function (message, level) {
         ///<summary>Displays form level notification for this attribute.</summary>
         ///<param name="message">String: The text of the message </param>
         ///<param name="level">Type: ERROR, WARNING, INFO</param>       
         Xrm.Page.ui.setFormNotification(message, level, attribute);
-        return new BrcXrmShortcuts(attribute); // re-initiate for chaining
+        return new ShorthandXRM(attribute); // re-initiate for chaining
     };
     this.clearFormNotification = function () {
         Xrm.Page.ui.clearFormNotification(attribute);
-        return new BrcXrmShortcuts(attribute); // re-initiate for chaining
+        return new ShorthandXRM(attribute); // re-initiate for chaining
     };
     this.setValue = function (value) {
         Xrm.Page.getAttribute(attribute).setValue(value);
-        return new BrcXrmShortcuts(attribute); // re-initiate for chaining
+        return new ShorthandXRM(attribute); // re-initiate for chaining
+    };
+    this.setLookupValue = function (id, name, entityType) {
+        ///<summary>Sets a value on a lookup field</summary>
+        ///<param name="id">Guid: The Guid of the record (lowercase with braces?)</param>
+        ///<param name="name">String: The text description value of the record</param>  
+        ///<param name="entityType">String: The entity name</param>  
+        var value = [{ id: id, name: name, entityType: entityType }];
+        Xrm.Page.getAttribute(attribute).setValue(value);
+        return new ShorthandXRM(attribute); // re-initiate for chaining
     };
     this.getText = function () {
         ///<summary>Returns the string value for the currently select option set (and null if none) Does not chain</summary>
@@ -346,12 +576,32 @@ var BrcXrmShortcuts = function (attribute) {
         ///<summary>Returns the attribute object. Does not chain</summary>
         return Xrm.Page.getAttribute(attribute);
     };
+    this.getControl = function () {
+        ///<summary>Returns the attribute object. Does not chain</summary>
+        return Xrm.Page.getControl(attribute);
+    };
     this.setFocus = function () {
         Xrm.Page.getControl(attribute).setFocus();
-        return new BrcXrmShortcuts(attribute);
+        return new ShorthandXRM(attribute);
+    };
+
+    this.fireOnChange = function () {
+        Xrm.Page.getAttribute(attribute).fireOnChange();
+        return new ShorthandXRM(attribute);
+    };
+    this.getLabel = function () {
+        return Xrm.Page.getControl(attribute).getLabel();
+    };
+    this.setLabel = function (label) {
+        Xrm.Page.getControl(attribute).setLabel(label);
+        return new ShorthandXRM(attribute);
+    }
+    this.addPreSearch = function (preSearchFunction) {
+        Xrm.Page.getControl(attribute).addPreSearch(preSearchFunction);
+        return new ShorthandXRM(attribute);
     };
 }
 
 var $x = function (attribute) {
-    return new BrcXrmShortcuts(attribute);
+    return new ShorthandXRM(attribute);
 };
